@@ -59,6 +59,10 @@ abstract public class Entity {
 	public String directionX;
 	public String directionY;
 	
+	//for npcs
+	
+	public Rectangle detectionArea = new Rectangle(0,0,64,64);
+	
 	public void draw(Graphics2D g2,GamePanel gamePanel) {
 		
 	}

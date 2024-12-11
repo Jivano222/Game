@@ -2,10 +2,14 @@ package main;
 
 import java.awt.event.*;
 
+import entity.Player;
+
 public class KeyHandler implements KeyListener{
 	
 	public boolean upPressed,downPressed,leftPressed,rightPressed;//main movement
-	public boolean shiftPressed,spacePressed,iPressed;
+	public boolean shiftPressed,spacePressed,iPressed,ePressed;
+	
+	public boolean eProcessed = false;
 
 	@Override
 	public void keyTyped(KeyEvent e) {
@@ -45,9 +49,16 @@ public class KeyHandler implements KeyListener{
 			iPressed = true;
 		}
 		
+		if(code == KeyEvent.VK_E) {
+			ePressed = true;
+			
+			 
+		}
+		
 		
 		
 	}
+	
 
 	@Override
 	public void keyReleased(KeyEvent e) {
@@ -80,6 +91,12 @@ public class KeyHandler implements KeyListener{
 		
 		if(code == KeyEvent.VK_I) {
 			iPressed = false;
+		}
+		
+		if(code == KeyEvent.VK_E) {
+			ePressed = false;
+			eProcessed = false;
+			
 		}
 		
 	}

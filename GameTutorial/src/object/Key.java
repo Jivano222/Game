@@ -18,7 +18,7 @@ public class Key extends SuperObject{
 		
 		name = "key";
 		try {
-			image = ImageIO.read(getClass().getResourceAsStream("/objects/newKey.png"));
+			image = ImageIO.read(getClass().getResourceAsStream("/objects/newKeyWhite.png"));
 		}catch(IOException e) {
 			e.printStackTrace();
 		}

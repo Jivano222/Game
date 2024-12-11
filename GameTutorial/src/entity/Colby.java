@@ -43,8 +43,8 @@ public class Colby extends Entity{
 public void loadSprites() {
 		
 		try {
-			state1 = ImageIO.read(getClass().getResourceAsStream("/enemies/grabber1.png"));
-			state2 = ImageIO.read(getClass().getResourceAsStream("/enemies/grabber2.png"));
+			state1 = ImageIO.read(getClass().getResourceAsStream("/enemies/colbyWhite1.png"));
+			state2 = ImageIO.read(getClass().getResourceAsStream("/enemies/colbyWhite2.png"));
 			image = state1;
 		}catch(IOException e) {
 			e.printStackTrace();

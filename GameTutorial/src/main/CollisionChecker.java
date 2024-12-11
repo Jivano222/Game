@@ -93,6 +93,34 @@ public class CollisionChecker {
 		return index;
 	}
 	
+	public int checkNPC(Entity entity, boolean player) {
+		
+		int index = 999;
+		
+		for(int i = 0;i<gamePanel.objects.length;i++) {
+			if(gamePanel.npcs[i]!=null) {
+				entity.solidArea.x = entity.worldX + entity.solidArea.x;
+				entity.solidArea.y = entity.worldY + entity.solidArea.y;
+				
+				gamePanel.npcs[i].detectionArea.x = gamePanel.npcs[i].worldX + gamePanel.npcs[i].solidArea.x;
+				gamePanel.npcs[i].detectionArea.y = gamePanel.npcs[i].worldY + gamePanel.npcs[i].solidArea.y;
+				if(entity.solidArea.intersects(gamePanel.npcs[i].detectionArea)) {
+					index = i;
+				}
+
+				entity.solidArea.x = entity.solidAreaDefaultX;
+				entity.solidArea.y = entity.solidAreaDefaultY;
+				
+				gamePanel.npcs[i].detectionArea.x = gamePanel.npcs[i].solidAreaDefaultX;
+				gamePanel.npcs[i].detectionArea.y = gamePanel.npcs[i].solidAreaDefaultY;
+				
+			}
+		}
+				
+			
+		return index;
+	}
+	
 	
 	public int checkEnemy(Entity entity, boolean player) {
 		

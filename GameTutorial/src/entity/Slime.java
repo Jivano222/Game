@@ -23,7 +23,7 @@ public class Slime extends Entity {
 		this.hp = 10;
 		this.atk = 3;
 		this.speed = 1;
-		this.def = 10;
+		this.def = 4;
 		this.name = "slime";
 		this.direction = "down";
 		this.spd = 2;
@@ -48,8 +48,8 @@ public class Slime extends Entity {
 	public void loadSprites() {
 		
 		try {
-			state1 = ImageIO.read(getClass().getResourceAsStream("/enemies/newSlime1.png"));
-			state2 = ImageIO.read(getClass().getResourceAsStream("/enemies/newSlime2.png"));
+			state1 = ImageIO.read(getClass().getResourceAsStream("/enemies/whiteSlime1.png"));
+			state2 = ImageIO.read(getClass().getResourceAsStream("/enemies/whiteSlime2.png"));
 			image = state1;
 		}catch(IOException e) {
 			e.printStackTrace();
@@ -61,7 +61,7 @@ public class Slime extends Entity {
 		
 		//System.out.println(spriteCounter);
 		
-		if(spriteCounter>27) {
+		if(spriteCounter>40) {
 			if(state == 1) {
 				image = state1;
 				state=2;

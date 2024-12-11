@@ -19,7 +19,7 @@ public class TileManager {
 	public TileManager(GamePanel gamePanel) {
 		this.gamePanel = gamePanel;
 		
-		tile = new Tile[10];//num of dif types of tiles
+		tile = new Tile[25];//num of dif types of tiles
 		
 		mapTileNum = new int[gamePanel.maxWorldRow][gamePanel.maxWorldCol];
 		
@@ -62,6 +62,12 @@ public class TileManager {
 			
 			tile[8] = new Tile();
 			tile[8].image = ImageIO.read(getClass().getResourceAsStream("/tiles/bridgeHorizontal.png"));
+			
+			tile[9] = new Tile();
+			tile[9].image = ImageIO.read(getClass().getResourceAsStream("/tiles/otherGrass.png"));
+			
+			tile[10] = new Tile();
+			tile[10].image = ImageIO.read(getClass().getResourceAsStream("/tiles/scaryTile.png"));
 			
 
 			

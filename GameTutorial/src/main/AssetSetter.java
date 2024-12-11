@@ -27,7 +27,7 @@ public class AssetSetter {
 		
 		
 		
-		gamePanel.objects[2] = new Dagger();
+		gamePanel.objects[2] = new Sword();
 		gamePanel.objects[2].worldX = 2 * gamePanel.tileSize; // col
 		gamePanel.objects[2].worldY = 2 * gamePanel.tileSize; // row
 		
@@ -71,5 +71,11 @@ public class AssetSetter {
 		gamePanel.enemies[4] = new Slime();
 		gamePanel.enemies[4].worldX = 2 * gamePanel.tileSize;
 		gamePanel.enemies[4].worldY = 3 * gamePanel.tileSize;
+	}
+	
+	public void setNPC() {
+		gamePanel.npcs[0] = new OldMan();
+		gamePanel.npcs[0].worldX = 3*gamePanel.tileSize;
+		gamePanel.npcs[0].worldY = 7*gamePanel.tileSize;
 	}
 }

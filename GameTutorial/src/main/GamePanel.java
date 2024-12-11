@@ -81,6 +81,17 @@ public class GamePanel extends JPanel implements Runnable{
 		BattleButton hpPotButton;
 		
 		
+		
+		
+		
+		//For menu - should refactor battleButton to just be menubutton but oh well for now
+		BattleButton weapons;
+			BattleButton swapToSword,swapToFist,swapToHammer,back;
+			public boolean weaponsOpen;
+		
+	//dialogue
+	public ArrayList<String> dialogue = new ArrayList<String>();
+		
 	public boolean defended;
 	
 	
@@ -108,8 +119,11 @@ public class GamePanel extends JPanel implements Runnable{
 	public SuperObject objects[] = new SuperObject[20];
 	public AssetSetter aSetter = new AssetSetter(this);
 	
+	
 	//ENEMIES
 	public Entity enemies[] = new Entity[20];
+	
+	public Entity npcs[] = new Entity[20];
 	
 	
 	
@@ -194,6 +208,7 @@ public class GamePanel extends JPanel implements Runnable{
 	public void setupGame() {
 		aSetter.setObject();
 		aSetter.setEnemy();
+		aSetter.setNPC();
 	}
 	
 	public void update() {
@@ -208,9 +223,24 @@ public class GamePanel extends JPanel implements Runnable{
 			 if (gameState == GameState.PLAYING) {
 			tileManager.draw(g2);
 			
+			if(player.talking==true) {
+				//String message = "";
+				if(dialogue.isEmpty()==false) {
+					String message = dialogue.get(0);
+					displayDialogue(g2,message);
+				}
+				
+			}
+			
 			for(int i = 0;i<objects.length;i++) {
 				if(objects[i]!=null) {
 					objects[i].draw(g2, this);
+				}
+			}
+			
+			for(int i = 0;i<npcs.length;i++) {
+				if(npcs[i]!=null) {
+					npcs[i].draw(g2, this);
 				}
 			}
 			
@@ -274,10 +304,23 @@ public class GamePanel extends JPanel implements Runnable{
 		    
 		    backButton = new BattleButton(526,550,466,146,"Back");
 		    
-		    atk1Button = new BattleButton(30,374,218,58,"Strike");
-		    atk2Button = new BattleButton(278,374,218,58,"Stab");
-		    atk3Button = new BattleButton(526,374,218,58,"Slime Armour");	    
-		    atk4Button = new BattleButton(774,374,218,58,"Roundhouse Kick");
+		    if(player.holding == "fist") {
+		    	atk1Button = new BattleButton(30,374,218,58,"Punch");
+			    atk2Button = new BattleButton(278,374,218,58,"Kick");
+			    atk3Button = new BattleButton(526,374,218,58,"Grapple");	    
+			    atk4Button = new BattleButton(774,374,218,58,"Throw");
+		    }else if(player.holding == "sword") {
+		    	atk1Button = new BattleButton(30,374,218,58,"Slash");
+			    atk2Button = new BattleButton(278,374,218,58,"Stab");
+			    atk3Button = new BattleButton(526,374,218,58,"Pommel Strike");	    
+			    atk4Button = new BattleButton(774,374,218,58,"Impale");
+		    }else if(player.holding == "hammer") {
+		    	atk1Button = new BattleButton(30,374,218,58,"Crushing Blow");
+			    atk2Button = new BattleButton(278,374,218,58,"Breaker Barrage");
+			    atk3Button = new BattleButton(526,374,218,58,"Hammerfall");	    
+			    atk4Button = new BattleButton(774,374,218,58,"Iron Tempest");
+		    }
+		    
 		    
 		    atk5Button = new BattleButton(30,462,218,58,"ATK5");
 		    atk6Button = new BattleButton(278,462,218,58,"ATK6");
@@ -557,14 +600,136 @@ public class GamePanel extends JPanel implements Runnable{
 	public void renderPaused(Graphics2D g2) {
 		 g2.setFont(new Font("Arial", Font.BOLD, 40));
 		 g2.setColor(Color.WHITE);
-	     g2.drawString("MENU", screenWidth/2-70, 50);
+	     g2.drawString("MENU", screenWidth/2-60, 50);
 	     g2.setFont(new Font("Arial", Font.BOLD, 18));
 	     
-	     g2.drawString("PLAYER STATS",828,60);
-		 g2.drawString("   HP : " + String.valueOf(player.hp).toUpperCase(), 828, 100);
-		 g2.drawString("   ATK: " + String.valueOf(player.atk).toUpperCase(), 828, 140);
-		 g2.drawString("   DEF: " + String.valueOf(player.def).toUpperCase(), 828, 180);
-		 g2.drawString("   SPD: " + String.valueOf(player.spd).toUpperCase(), 828, 220);
+	     Color originalColor = g2.getColor();
+	     Font originalFont = g2.getFont();
+	     BufferedImage playerImage = player.down1;
+	     g2.drawImage(playerImage, (screenWidth/2)-(playerImage.getWidth()*5)/2-350, (screenHeight/4)-(playerImage.getHeight()*5)/2, playerImage.getWidth()*5, playerImage.getHeight()*5,null);
+	     weapons = new BattleButton(screenWidth/2-200,100,400,100,"Weapons");
+	     swapToFist = new BattleButton(screenWidth/2-200,100,400,100,"Equip Fists");
+	     swapToSword = new BattleButton(screenWidth/2-200,240,400,100,"Equip Sword");
+	     swapToHammer = new BattleButton(screenWidth/2-200,380,400,100,"Equip Hammer");
+	    
+	     
+	     
+	     back = new BattleButton(screenWidth/2-200,600,400,100,"Back");
+//	     swapToSword.draw(g2);
+//	     swapToFist.draw(g2);
+	     if(weaponsOpen==true) {
+	    	 if(player.atk1Unlock == true) {//should be a check for weapon unlocks, not yet implemented
+		    		if(swapToSword.clickableArea.contains(motionHandler.hoveredX,motionHandler.hoveredY)) {
+		    			
+				    		drawHoveredButton(g2,swapToSword);
+				    	
+			    	}else {
+			    		
+			    		swapToSword.draw(g2);
+			    	}
+		     }
+		     
+		     if(player.atk1Unlock == true) {//should be a check for weapon unlocks, not yet implemented
+		    		if(swapToFist.clickableArea.contains(motionHandler.hoveredX,motionHandler.hoveredY)) {
+		    			
+				    		drawHoveredButton(g2,swapToFist);
+				    	
+			    	}else {
+			    		
+			    		swapToFist.draw(g2);
+			    	}
+		     }
+
+		
+		     if(player.hammerUnlock == true) {
+		    	 if(swapToHammer.clickableArea.contains(motionHandler.hoveredX,motionHandler.hoveredY)) {
+		    			
+			    		drawHoveredButton(g2,swapToHammer);
+			    	
+		    	}else {
+		    		
+		    		swapToHammer.draw(g2);
+		    	}
+		     }else {
+		    	 drawLockedButton(g2,swapToHammer);
+		     }
+		    		if(back.clickableArea.contains(motionHandler.hoveredX,motionHandler.hoveredY)) {
+		    			
+				    		drawHoveredButton(g2,back);
+				    	
+			    	}else {
+			    		
+			    		back.draw(g2);
+			    	}
+		    	
+		     
+	     }else {
+	
+		    		if(weapons.clickableArea.contains(motionHandler.hoveredX,motionHandler.hoveredY)) {
+		    			
+				    		drawHoveredButton(g2,weapons);
+				    	
+			    	}else {
+			    		
+			    		weapons.draw(g2);
+			    	}
+		     
+		     
+	     }
+	     
+	     
+	     
+	     int clickedX = mouseHandler.clickedX;
+		 int clickedY = mouseHandler.clickedY;
+	     if(weaponsOpen == true && swapToSword.clickableArea.contains(clickedX,clickedY)) {
+	    	 mouseHandler.resetClicked();
+	    	 player.holding="sword";
+	    	 player.getPlayerImage();
+	    	 System.out.println("SWAPPED TO SWORD");
+	     }else if(weaponsOpen == true && swapToFist.clickableArea.contains(clickedX,clickedY)) {
+	    	 mouseHandler.resetClicked();
+	    	 player.holding="fist";
+	    	 player.getPlayerImage();
+	    	 System.out.println("SWAPPED TO FIST");
+	     }else if(weaponsOpen == true && swapToHammer.clickableArea.contains(clickedX,clickedY)) {
+	    	 mouseHandler.resetClicked();
+	    	 player.holding="hammer";
+	    	 player.getPlayerImage();
+	    	 System.out.println("SWAPPED TO HAMMER");
+	     }else if(weapons.clickableArea.contains(clickedX,clickedY)) {
+	    	 mouseHandler.resetClicked();
+	    	 weaponsOpen=true;
+	    	 
+	     }else if(back.clickableArea.contains(clickedX,clickedY)) {
+	    	 mouseHandler.resetClicked();
+	    	 weaponsOpen=false;
+	     }
+	     
+	     //later for checking if swords unlocked
+	   
+	     //could turn into a method to use in either of the current menus
+	     //would have to take x & y to redraw in correct pos
+	     g2.setColor(originalColor);
+	     g2.setFont(originalFont);
+	     
+	     g2.drawString("PLAYER STATS",screenWidth/2 - (playerImage.getWidth()*5)/2-350,320);
+		 g2.drawString("   HP : " + String.valueOf(player.hp).toUpperCase(), screenWidth/2 - (playerImage.getWidth()*5)/2-350, 360);
+		 g2.drawString("   ATK: " + String.valueOf(player.atk).toUpperCase(), screenWidth/2 - (playerImage.getWidth()*5)/2-350, 400);
+		 g2.drawString("   DEF: " + String.valueOf(player.def).toUpperCase(), screenWidth/2 - (playerImage.getWidth()*5)/2-350, 440);
+		 g2.drawString("   SPD: " + String.valueOf(player.spd).toUpperCase(), screenWidth/2 - (playerImage.getWidth()*5)/2-350, 480);
+		 
+		 
+		 g2.drawString("Completed Quests",(screenWidth/4)*3,80);
+		 for(int i = 0;i<player.questManager.completedQuests.size();i++) {
+			 int index = i+1;//quests start at 1
+			 String questName = player.questManager.completedQuests.get(index);
+			 g2.drawString(questName, (screenWidth/4)*3, 120+40*i);
+		 }
+		 
+		 g2.drawString("   HP : " + String.valueOf(player.hp).toUpperCase(), screenWidth/2 - (playerImage.getWidth()*5)/2-350, 360);
+		 g2.drawString("   ATK: " + String.valueOf(player.atk).toUpperCase(), screenWidth/2 - (playerImage.getWidth()*5)/2-350, 400);
+		 g2.drawString("   DEF: " + String.valueOf(player.def).toUpperCase(), screenWidth/2 - (playerImage.getWidth()*5)/2-350, 440);
+		 g2.drawString("   SPD: " + String.valueOf(player.spd).toUpperCase(), screenWidth/2 - (playerImage.getWidth()*5)/2-350, 480);
 	}
 	
 	
@@ -697,6 +862,8 @@ public class GamePanel extends JPanel implements Runnable{
 					endBattle();
 					if(enemies[player.currentlyFighting].name=="keyman") {
 						player.keyCount++;
+					}else if(enemies[player.currentlyFighting].name=="slime") {
+						player.slimeKC++;
 					}
 					enemies[player.currentlyFighting] = null;
 				}
@@ -804,6 +971,8 @@ public class GamePanel extends JPanel implements Runnable{
 					endBattle();
 					if(enemies[player.currentlyFighting].name=="keyman") {
 						player.keyCount++;
+					}else if(enemies[player.currentlyFighting].name=="slime") {
+						player.slimeKC++;
 					}
 					enemies[player.currentlyFighting] = null;
 				}
@@ -958,6 +1127,8 @@ public class GamePanel extends JPanel implements Runnable{
 				endBattle();
 				if(enemies[player.currentlyFighting].name=="keyman") {
 					player.keyCount++;
+				}else if(enemies[player.currentlyFighting].name=="slime") {
+					player.slimeKC++;
 				}
 				enemies[player.currentlyFighting] = null;
 			}
@@ -1075,6 +1246,63 @@ public void drawNoItems(Graphics2D g2, BattleButton locked) {
 		
 		entity.poisonCounter = 0;
 		entity.bleedCounter = 0;
+	}
+	
+//	public void displayDialogue(Graphics2D g2, String dialogue) {
+//		Font originalFont = g2.getFont();
+//		// Draw a placeholder for ATK1 if not unlocked
+//        g2.setColor(Color.WHITE); // Placeholder background color
+//        g2.fillRect(screenWidth/2,(screenHeight/4)*3,200,50);
+//        g2.setColor(Color.BLACK); // Placeholder border color
+//        g2.drawRect(screenWidth/2,(screenHeight/4)*3,200,50);
+//
+//        // Draw "Locked" text
+//        g2.setColor(Color.BLACK);
+//        g2.setFont(new Font("Arial", Font.BOLD, 25));
+//        FontMetrics metrics = g2.getFontMetrics();
+//        
+////        int textX = hovered.x + (hovered.w - metrics.stringWidth(lockedText)) / 2;
+////        int textY = hovered.y + (hovered.h - metrics.getHeight()) / 2 + metrics.getAscent();
+//        g2.drawString(dialogue, screenWidth/2,(screenHeight/4)*3);
+//        g2.setFont(originalFont);
+//	}
+	public void displayDialogue(Graphics2D g2, String dialogue) {
+	    // Save the original font to restore later
+	    Font originalFont = g2.getFont();
+
+	    // Define dimensions for the dialogue box
+	    int boxWidth = screenWidth - 40; // Leave padding on the sides
+	    int boxHeight = 100; // Height of the box
+	    int boxX = 20; // X position for padding
+	    int boxY = screenHeight - boxHeight - 20; // Position the box near the bottom
+
+	    // Draw the dialogue box
+	    g2.setColor(Color.BLACK); // Background color
+	    g2.fillRect(boxX, boxY, boxWidth, boxHeight);
+	    g2.setColor(Color.WHITE); // Border color
+	    g2.drawRect(boxX, boxY, boxWidth, boxHeight);
+
+	    // Draw the text inside the box
+	    g2.setColor(Color.WHITE);
+	    g2.setFont(new Font("Arial", Font.BOLD, 25));
+	    FontMetrics metrics = g2.getFontMetrics();
+
+	    // Calculate the position for the text to center it within the box
+	    int textX = boxX + (boxWidth - metrics.stringWidth(dialogue)) / 2; // Center horizontally
+	    int textY = boxY + (boxHeight - metrics.getHeight()) / 2 + metrics.getAscent(); // Center vertically
+
+	    // Draw the dialogue text
+	    g2.drawString(dialogue, textX, textY);
+
+	    // Restore the original font
+	    g2.setFont(originalFont);
+	}
+	
+	public void addDialogue(String[] messages) {
+		
+		for(int i = 0;i<messages.length;i++) {
+			dialogue.add(messages[i]);
+		}
 	}
 
 	

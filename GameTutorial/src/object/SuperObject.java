@@ -55,13 +55,13 @@ public class SuperObject {
 			this.keyAnimation();
 		}
 		
-		if(this.name=="dagger") {
+		if(this.name=="sword") {
 			spriteCounter2++;
-			this.daggerAnimation();
+			this.weaponAnimation();
 		}
 		if(this.name=="bosshammer") {
 			spriteCounter2++;
-			this.daggerAnimation();
+			this.weaponAnimation();
 		}
 		
 		if(worldX + gamePanel.tileSize*2 > gamePanel.player.worldX - gamePanel.player.screenX  
@@ -93,7 +93,7 @@ public class SuperObject {
 	 * Causes dagger(s) on the map to move up and down periodically
 	 * Uses separate counters from keyAnimation to have longer delay between movements
 	 */
-	public void daggerAnimation() {
+	public void weaponAnimation() {
 		if(spriteCounter2>50) {
 			if(spriteNum2==1) {
 				worldY -= 10;

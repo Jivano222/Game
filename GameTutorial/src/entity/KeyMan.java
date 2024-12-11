@@ -24,7 +24,7 @@ public class KeyMan extends Entity{
 		this.def = 7;
 		this.name = "keyman";
 		this.direction = "down";
-		this.speed = 10;
+		this.speed = 7;
 		solidArea = new Rectangle();
 		solidArea.x = 0;
 		solidArea.y = 0;
@@ -46,8 +46,8 @@ public class KeyMan extends Entity{
 	public void loadSprites() {
 		
 		try {
-			state1 = ImageIO.read(getClass().getResourceAsStream("/enemies/keyMan1.png"));
-			state2 = ImageIO.read(getClass().getResourceAsStream("/enemies/keyMan2.png"));
+			state1 = ImageIO.read(getClass().getResourceAsStream("/enemies/whiteKeyMan1.png"));
+			state2 = ImageIO.read(getClass().getResourceAsStream("/enemies/whiteKeyMan2.png"));
 			image = state1;
 		}catch(IOException e) {
 			e.printStackTrace();

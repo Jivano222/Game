@@ -9,7 +9,7 @@ public class BossKey extends SuperObject{
 	public BossKey() {
 		name = "bossKey";
 		try {
-			image = ImageIO.read(getClass().getResourceAsStream("/objects/bossKey.png"));
+			image = ImageIO.read(getClass().getResourceAsStream("/objects/bossKeyWhite.png"));
 		}catch(IOException e) {
 			e.printStackTrace();
 		}
