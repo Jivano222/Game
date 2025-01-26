@@ -5,7 +5,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Random;
-
+import animation.*;
 import entity.Entity;
 import entity.Player;
 import fight.BattleButton;
@@ -31,10 +31,16 @@ public class GamePanel extends JPanel implements Runnable{
 	private int FPS = 60;
 	public boolean isPaused = false;
 	
+	//event 
+	
+	public EventManager eManager = new EventManager();
+	
+	
 	public enum GameState {
 	    PLAYING,
 	    PAUSED,
-	    BATTLE
+	    BATTLE,
+	    SUMMARY
 	}
 	
 	
@@ -44,6 +50,10 @@ public class GamePanel extends JPanel implements Runnable{
 	//TILES
 	public TileManager tileManager = new TileManager(this);
 	
+	
+	//AUDIO
+	SoundPlayer soundPlayer = new SoundPlayer();
+	
 	//KEY HANDLING
 	KeyHandler keyHandler = new KeyHandler();
 	//MOUSE HANDLER
@@ -52,6 +62,8 @@ public class GamePanel extends JPanel implements Runnable{
 	MouseMotionHandler motionHandler = new MouseMotionHandler();
 	
 	//BATTLE
+    Slash slash = new Slash();
+
 	BattleButton attackButton;
 		public boolean attackMenuOpen = false;
 		public boolean itemMenuOpen = false;
@@ -91,6 +103,8 @@ public class GamePanel extends JPanel implements Runnable{
 		
 	//dialogue
 	public ArrayList<String> dialogue = new ArrayList<String>();
+	
+	ArrayList<String> summaryDialogue = new ArrayList<String>();
 		
 	public boolean defended;
 	
@@ -116,7 +130,7 @@ public class GamePanel extends JPanel implements Runnable{
 	public Player player = new Player(this,keyHandler);
 	
 	//OJBECTS
-	public SuperObject objects[] = new SuperObject[20];
+	public SuperObject objects[] = new SuperObject[100];
 	public AssetSetter aSetter = new AssetSetter(this);
 	
 	
@@ -128,8 +142,8 @@ public class GamePanel extends JPanel implements Runnable{
 	
 	
 	//WORLD SETTINGS
-	public final int maxWorldCol = 25;
-	public final int maxWorldRow = 25;
+	public final int maxWorldCol = 250;
+	public final int maxWorldRow = 250;
 	public final int worldWidth = tileSize * maxWorldCol;
 	public final int worldHeight = tileSize * maxWorldRow;
 	
@@ -186,6 +200,10 @@ public class GamePanel extends JPanel implements Runnable{
 					update();
 	            }else if(gameState == GameState.BATTLE) {
 	            	updateBattle();
+	            }else if(gameState == GameState.PAUSED) {
+	            	updatePaused();
+	            }else if(gameState == GameState.SUMMARY) {
+	            	updateSummary();
 	            }
 				
 				//DRAW: draws the screen based on the info updated
@@ -213,13 +231,25 @@ public class GamePanel extends JPanel implements Runnable{
 	
 	public void update() {
 		player.update();
+		eManager.checkEvent();
+		//make update events func
+		//16 31
+		if(eManager.event1Active==true) {
+			System.out.println("event started");
+			tileManager.mapTileNum[16][30]=0;
+			tileManager.mapTileNum[15][30]=0;
+			tileManager.mapTileNum[14][30]=0;
+			eManager.set1 = 999;
+			eManager.event1Active = false;
+		}
+	
 		
 	}
 	
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g); //always goes in paintComponent();
 		
-		Graphics2D g2 = (Graphics2D)g; //has more options than g?
+		Graphics2D g2 = (Graphics2D)g; 
 			 if (gameState == GameState.PLAYING) {
 			tileManager.draw(g2);
 			
@@ -254,8 +284,10 @@ public class GamePanel extends JPanel implements Runnable{
 		 }else if(gameState == GameState.BATTLE) {
 			 renderBattleInterface(g2);
 		 }else if(gameState == GameState.PAUSED) {
-			 updatePaused();
+			 //updatePaused();
 			 renderPaused(g2);
+		 }else if(gameState == GameState.SUMMARY) {
+			 renderSummary(g2);
 		 }
 		
 		
@@ -292,9 +324,17 @@ public class GamePanel extends JPanel implements Runnable{
 	    
 	    }
 	    
-	    
 	    g2.drawImage(enemyImage, (screenWidth/2)-(enemyImage.getWidth()*enemies[player.currentlyFighting].battleScaling)/2, (screenHeight/4)-(enemyImage.getHeight()*enemies[player.currentlyFighting].battleScaling)/2, enemyImage.getWidth()*enemies[player.currentlyFighting].battleScaling, enemyImage.getHeight()*enemies[player.currentlyFighting].battleScaling,null);
-	    
+        
+	    int clickedX = mouseHandler.clickedX;
+		int clickedY = mouseHandler.clickedY;
+		
+	   
+	    if(slash.active == true) {
+	    	slash.spriteCounter++;
+	    	slash.animate();
+	    	g2.drawImage(slash.currentSprite, (screenWidth/2)-(enemyImage.getWidth()*enemies[player.currentlyFighting].battleScaling)/2, (screenHeight/4)-(enemyImage.getHeight()*enemies[player.currentlyFighting].battleScaling)/2, enemyImage.getWidth()*enemies[player.currentlyFighting].battleScaling, enemyImage.getHeight()*enemies[player.currentlyFighting].battleScaling,null);
+	    }
 	    
 	    	attackButton = new BattleButton(30,374,470,180,"Attack");
 		    defendButton = new BattleButton(530,374,470,180,"Defend");
@@ -306,9 +346,9 @@ public class GamePanel extends JPanel implements Runnable{
 		    
 		    if(player.holding == "fist") {
 		    	atk1Button = new BattleButton(30,374,218,58,"Punch");
-			    atk2Button = new BattleButton(278,374,218,58,"Kick");
-			    atk3Button = new BattleButton(526,374,218,58,"Grapple");	    
-			    atk4Button = new BattleButton(774,374,218,58,"Throw");
+			    atk2Button = new BattleButton(278,374,218,58,"Throw Dirt");
+			    atk3Button = new BattleButton(526,374,218,58,"Sucker Punch");	    
+			    atk4Button = new BattleButton(774,374,218,58,"Fist Frenzy");
 		    }else if(player.holding == "sword") {
 		    	atk1Button = new BattleButton(30,374,218,58,"Slash");
 			    atk2Button = new BattleButton(278,374,218,58,"Stab");
@@ -324,7 +364,7 @@ public class GamePanel extends JPanel implements Runnable{
 		    
 		    atk5Button = new BattleButton(30,462,218,58,"ATK5");
 		    atk6Button = new BattleButton(278,462,218,58,"ATK6");
-		    atk7Button = new BattleButton(526,462,218,58,"Zibzog Slayer");	    
+		    atk7Button = new BattleButton(526,462,218,58,"boss Slayer");	    
 		    atk8Button = new BattleButton(774,462,218,58,"ATK8");
 		    
 		    atk9Button = new BattleButton(30,550,218,58,"ATK9");
@@ -569,13 +609,19 @@ public class GamePanel extends JPanel implements Runnable{
 	    g2.drawString("   ATK: " + String.valueOf(player.atk).toUpperCase(), 828, 140);
 	    g2.drawString("   DEF: " + String.valueOf(player.def).toUpperCase(), 828, 180);
 	    g2.drawString("   SPD: " + String.valueOf(player.spd).toUpperCase(), 828, 220);
-	    if(player.poisoned == true) {
-	    	g2.drawString("   STAT: POISON (" + String.valueOf(player.poisonCounter) +")", 828, 260);
-	    }else if( player.bleeding == true) {
-	    	g2.drawString("   STAT: BLEED (" + String.valueOf(player.bleedCounter) +")", 828, 260);
+	    if(player.status=="clear") {
+	    	g2.drawString("   STAT: " + player.status.toUpperCase(), 828, 260);
 	    }else {
-	    	g2.drawString("   STAT: CLEAR", 828, 260);
+	    	g2.drawString("   STAT: " + player.status.toUpperCase() + " (" + String.valueOf(player.statusCounter) +")", 828, 260);
 	    }
+	    
+//	    if(player.status == "poison") {
+//	    	g2.drawString("   STAT: POISON (" + String.valueOf(player.poisonCounter) +")", 828, 260);
+//	    }else if( player.bleeding == true) {
+//	    	g2.drawString("   STAT: BLEED (" + String.valueOf(player.bleedCounter) +")", 828, 260);
+//	    }else {
+//	    	g2.drawString("   STAT: CLEAR", 828, 260);
+//	    }
 	    
 	    
 	  //ENEMY STATS
@@ -584,11 +630,16 @@ public class GamePanel extends JPanel implements Runnable{
 	    g2.drawString("   ATK: " + String.valueOf(enemies[player.currentlyFighting].atk).toUpperCase(), 658, 140);
 	    g2.drawString("   DEF: " + String.valueOf(enemies[player.currentlyFighting].def).toUpperCase(), 658, 180);
 	    g2.drawString("   SPD: " + String.valueOf(enemies[player.currentlyFighting].spd).toUpperCase(), 658, 220);
-	    if(enemies[player.currentlyFighting].poisoned == true) {
-	    	g2.drawString("   STAT: POISON (" + String.valueOf(enemies[player.currentlyFighting].poisonCounter) +")", 658, 260);
+	    if(enemies[player.currentlyFighting].status == "clear") {
+	    	g2.drawString("   STAT: " + enemies[player.currentlyFighting].status.toUpperCase(), 658, 260);
 	    }else {
-	    	g2.drawString("   STAT: CLEAR", 658, 260);
+	    	g2.drawString("   STAT: " + enemies[player.currentlyFighting].status.toUpperCase() + " (" + String.valueOf(enemies[player.currentlyFighting].statusCounter) +")", 658, 260);
 	    }
+//	    if(enemies[player.currentlyFighting].poisoned == true) {
+//	    	g2.drawString("   STAT: POISON (" + String.valueOf(enemies[player.currentlyFighting].poisonCounter) +")", 658, 260);
+//	    }else {
+//	    	g2.drawString("   STAT: CLEAR", 658, 260);
+//	    }
 	    
 	    //ENEMY NAME
 	    g2.drawString((enemies[player.currentlyFighting].name).toUpperCase(), screenWidth / 2 - (enemies[player.currentlyFighting].name).length()*6 , screenHeight / 10);
@@ -691,7 +742,7 @@ public class GamePanel extends JPanel implements Runnable{
 	    	 player.holding="fist";
 	    	 player.getPlayerImage();
 	    	 System.out.println("SWAPPED TO FIST");
-	     }else if(weaponsOpen == true && swapToHammer.clickableArea.contains(clickedX,clickedY)) {
+	     }else if(weaponsOpen == true && player.hammerUnlock == true &&swapToHammer.clickableArea.contains(clickedX,clickedY)) {
 	    	 mouseHandler.resetClicked();
 	    	 player.holding="hammer";
 	    	 player.getPlayerImage();
@@ -732,7 +783,9 @@ public class GamePanel extends JPanel implements Runnable{
 		 g2.drawString("   SPD: " + String.valueOf(player.spd).toUpperCase(), screenWidth/2 - (playerImage.getWidth()*5)/2-350, 480);
 	}
 	
-	
+	/**
+	 * Updates the logic for the paused menu
+	 */
 	public void updatePaused() {
 		if(keyHandler.iPressed==true) {
 			if(gameState == GameState.PLAYING) {
@@ -754,38 +807,37 @@ public class GamePanel extends JPanel implements Runnable{
 			int clickedY = mouseHandler.clickedY;
 			
 			if(attackMenuOpen == false && itemMenuOpen == false && attackButton.clickableArea.contains(clickedX,clickedY)) {
+				
+				mouseHandler.resetClicked();
 				attackMenuOpen = true;
-				mouseHandler.resetClicked();
 				
-				
-//				enemies[player.currentlyFighting].hp-=1;
-//				mouseHandler.resetClicked();
-//				
-//				String outputMsg = "Turn " + String.valueOf(turnCount)+": " +"You hit the " + enemies[player.currentlyFighting].name + "!";
-//	        	battleLog.add(outputMsg);
-//	        	if(battleLog.size()>maxLogDisplay) {
-//	        		battleLog.remove(0);
-//	        	}
-//	        	
-//	        	battleLog.add("     Did " + "1" + " damage!");
-//				if(battleLog.size()>maxLogDisplay) {
-//	        		battleLog.remove(0);
-//	        	}
-//				
-//				if(enemies[player.currentlyFighting].hp==0) {
-//					//gameState = GameState.PLAYING;
-//					endBattle();
-//					enemies[player.currentlyFighting] = null;
-//				}
-//				playerTurn = false;
-//				turnCount++;
+
 			}else if(attackMenuOpen == false && itemMenuOpen == false && runButton.clickableArea.contains(clickedX,clickedY)) {
-				//gameState = GameState.PLAYING;
 				//reset enemy state so you cant return to fight to cheat it
-				
-				endBattle();
-				
 				mouseHandler.resetClicked();
+				turnCount = 1;
+				battleLog.clear();
+				Entity currEnemy = enemies[player.currentlyFighting];
+				
+				
+				
+				
+				
+				summaryDialogue.add("Ran away from " + currEnemy.name);
+				
+
+				
+				
+				gameState = GameState.SUMMARY;
+				
+				
+				attackMenuOpen = false;
+				defended = false;
+				itemMenuOpen=false;
+				clearConditions(player);
+				//endBattle();
+				
+				
 				
 				playerTurn = false;
 				
@@ -805,29 +857,13 @@ public class GamePanel extends JPanel implements Runnable{
 		        	
 		        }else {
 		        	String outputMsg = "Turn " + String.valueOf(turnCount)+": " +"You failed to defend yourself!";
-		        	battleLog.add(outputMsg);
-		        	if(battleLog.size()>maxLogDisplay) {
-		        		battleLog.remove(0);
-		        	}
+		        	addToBattleLog(outputMsg);
 		        }
-	
+		        handleStatus(player);
 		        playerTurn = false;
 				turnCount++;
-				if(player.poisoned==true) {
-					System.out.println("test");
-					player.poisonCounter--;
-					player.hp -= 4;//poison damge, true damage ignores defense
-					if(player.poisonCounter<=0) {
-						player.poisoned = false;
-					}
-				}else if(player.bleeding==true) {
-					
-					player.bleedCounter--;
-					player.hp -= 2;
-					if(player.bleedCounter<=0) {
-						player.bleeding = false;
-					}
-				}
+				
+			
 			}else if(attackMenuOpen == false && itemMenuOpen == false && itemButton.clickableArea.contains(clickedX,clickedY)) {
 				mouseHandler.resetClicked();
 				itemMenuOpen=true;
@@ -835,122 +871,176 @@ public class GamePanel extends JPanel implements Runnable{
 				attackMenuOpen = false;
 				itemMenuOpen = false;
 				mouseHandler.resetClicked();
+			//attack 1
 			}else if(attackMenuOpen == true && itemMenuOpen == false && player.atk1Unlock==true && atk1Button.clickableArea.contains(clickedX,clickedY)) {
+				//updated to new condensed version of move handling for moves 1 thru 4
 				mouseHandler.resetClicked();
-				//make this into an attack method later
-				Random random = new Random();
-		        int roll = random.nextInt(3)+1;
-		        int turnDmg = player.atk * roll - enemies[player.currentlyFighting].def;
-		        if(turnDmg <0) {
-		        	turnDmg = 0;
-		        }
-		        
-				String outputMsg = "Turn " + String.valueOf(turnCount)+": " +"You hit the " + enemies[player.currentlyFighting].name + " with your hammer!";
-				battleLog.add(outputMsg);
-				if(battleLog.size()>maxLogDisplay) {
-	        		battleLog.remove(0);
-	        	}
+				//Should be specifically for sword attacks but for now its whatever
+				slash.active = true;
+				SoundPlayer.playSound(soundPlayer.sword_slash); 
+				
+				
+				//new condensed attack handling
+				boolean isAttack = true;
+				int turnDmg = 0;
+				String[] output = player.move1();
+				if(output[0] == "null") {
+					isAttack = false;
+				}
+				
+
+				if(isAttack==true) {
+					turnDmg = Integer.valueOf(output[0]) - enemies[player.currentlyFighting].def;
+					if(turnDmg<0) {
+						turnDmg = 0;
+					}
+				}
+				
+				setStatus(output[2],output[3],enemies[player.currentlyFighting]);
+				
+				if(player.status=="blind") {
+					turnDmg = 0;
+				}
+				String outputMsg = "Turn " + String.valueOf(turnCount)+": " + output[1];
+				addToBattleLog(outputMsg);
+				if(isAttack==true) {
+					addToBattleLog("     Did " + String.valueOf(turnDmg) + " damage!");
+				}
+				
+				
 	        	
-	        	battleLog.add("     Did " + String.valueOf(turnDmg) + " damage!");
-				if(battleLog.size()>maxLogDisplay) {
-	        		battleLog.remove(0);
-	        	}
 				
 				
 				enemies[player.currentlyFighting].hp -= turnDmg;
-				if(enemies[player.currentlyFighting].hp<=0) {
-					endBattle();
-					if(enemies[player.currentlyFighting].name=="keyman") {
-						player.keyCount++;
-					}else if(enemies[player.currentlyFighting].name=="slime") {
-						player.slimeKC++;
-					}
-					enemies[player.currentlyFighting] = null;
-				}
-				//attackMenuOpen = false;
+				checkBattleEnd();
+//				
+				handleStatus(player);
 				playerTurn = false;
 				turnCount++;
-				if(player.poisoned==true) {
-					System.out.println("test");
-					player.poisonCounter--;
-					player.hp -= 4;//poison damge, true damage ignores defense
-					if(player.poisonCounter<=0) {
-						player.poisoned = false;
-					}
-				}else if(player.bleeding==true) {
-					
-					player.bleedCounter--;
-					player.hp -= 2;
-					if(player.bleedCounter<=0) {
-						player.bleeding = false;
-					}
-				}
-			
+//		
 				
 			}else if(attackMenuOpen == true && itemMenuOpen == false && player.atk2Unlock==true && atk2Button.clickableArea.contains(clickedX,clickedY)) {
 				mouseHandler.resetClicked();
-				Random random = new Random();
-		        int roll;
-		        //high damage vs low armour
-		        if(enemies[player.currentlyFighting].def<5) {
-		        	roll = random.nextInt(10)+3;
-		        }else {
-		        	roll = random.nextInt(1);
-		        }
-		        int turnDmg = player.atk * roll - enemies[player.currentlyFighting].def;
-		        if(turnDmg < 0) {
-		        	turnDmg = 0;
-		        }
+				
+				boolean isAttack = true;
+				int turnDmg = 0;
+				String[] output = player.move2();
+				if(output[0] == "null") {
+					isAttack = false;
+				}
+				
+
+				if(isAttack==true) {
+					turnDmg = Integer.valueOf(output[0]) - enemies[player.currentlyFighting].def;
+					if(turnDmg<0) {
+						turnDmg = 0;
+					}
+				}
 		        
-		        String outputMsg = "Turn " + String.valueOf(turnCount)+": " +"You stabbed the " + enemies[player.currentlyFighting].name + "!";
-				battleLog.add(outputMsg);
-				if(battleLog.size()>maxLogDisplay) {
-	        		battleLog.remove(0);
-	        	}
-	        	
-	        	battleLog.add("     Did " + String.valueOf(turnDmg) + " damage!");
-				if(battleLog.size()>maxLogDisplay) {
-	        		battleLog.remove(0);
-	        	}
+				setStatus(output[2],output[3],enemies[player.currentlyFighting]);
+				
+				if(player.status=="blind") {
+					turnDmg = 0;
+				}
+				String outputMsg = "Turn " + String.valueOf(turnCount)+": " + output[1];
+				addToBattleLog(outputMsg);
+				if(isAttack==true) {
+					addToBattleLog("     Did " + String.valueOf(turnDmg) + " damage!");
+				}
 				
 				
 				enemies[player.currentlyFighting].hp -= turnDmg;
-				if(enemies[player.currentlyFighting].hp<=0) {
-					endBattle();
-					if(enemies[player.currentlyFighting].name=="keyman") {
-						player.keyCount++;
-					}
-					enemies[player.currentlyFighting] = null;
-				}
-				//attackMenuOpen = false;
+				checkBattleEnd();
+//				
+				handleStatus(player);
 				playerTurn = false;
 				turnCount++;
-				if(player.poisoned==true) {
-					System.out.println("test");
-					player.poisonCounter--;
-					player.hp -= 4;//poison damge, true damage ignores defense
-					if(player.poisonCounter<=0) {
-						player.poisoned = false;
-					}
-				}else if(player.bleeding==true) {
-					
-					player.bleedCounter--;
-					player.hp -= 2;
-					if(player.bleedCounter<=0) {
-						player.bleeding = false;
+//		
+				
+				
+			}else if(attackMenuOpen == true && itemMenuOpen == false && player.atk3Unlock==true && atk3Button.clickableArea.contains(clickedX,clickedY)) {
+				mouseHandler.resetClicked();
+				
+				boolean isAttack = true;
+				int turnDmg = 0;
+				String[] output = player.move3();
+				if(output[0] == "null") {
+					isAttack = false;
+				}
+				
+
+				if(isAttack==true) {
+					turnDmg = Integer.valueOf(output[0]) - enemies[player.currentlyFighting].def;
+					if(turnDmg<0) {
+						turnDmg = 0;
 					}
 				}
+		        
+				setStatus(output[2],output[3],enemies[player.currentlyFighting]);
+				
+				if(player.status=="blind") {
+					turnDmg = 0;
+				}
+				String outputMsg = "Turn " + String.valueOf(turnCount)+": " + output[1];
+				addToBattleLog(outputMsg);
+				if(isAttack==true) {
+					addToBattleLog("     Did " + String.valueOf(turnDmg) + " damage!");
+				}
+				
+				
+				enemies[player.currentlyFighting].hp -= turnDmg;
+				checkBattleEnd();
+//				
+				handleStatus(player);
+				playerTurn = false;
+				turnCount++;
+			}else if(attackMenuOpen == true && itemMenuOpen == false && player.atk4Unlock==true && atk4Button.clickableArea.contains(clickedX,clickedY)) {
+				mouseHandler.resetClicked();
+				
+				boolean isAttack = true;
+				int turnDmg = 0;
+				String[] output = player.move4();
+				if(output[0] == "null") {
+					isAttack = false;
+				}
+				
+
+				if(isAttack==true) {
+					turnDmg = Integer.valueOf(output[0]) - enemies[player.currentlyFighting].def;
+					if(turnDmg<0) {
+						turnDmg = 0;
+					}
+				}
+		        
+				setStatus(output[2],output[3],enemies[player.currentlyFighting]);
+				
+				if(player.status=="blind") {
+					turnDmg = 0;
+				}
+				String outputMsg = "Turn " + String.valueOf(turnCount)+": " + output[1];
+				addToBattleLog(outputMsg);
+				if(isAttack==true) {
+					addToBattleLog("     Did " + String.valueOf(turnDmg) + " damage!");
+				}
+				
+				
+				enemies[player.currentlyFighting].hp -= turnDmg;
+				checkBattleEnd();
+//				
+				handleStatus(player);
+				playerTurn = false;
+				turnCount++;
 			}else if(attackMenuOpen == true && itemMenuOpen == false && player.atk7Unlock==true && atk7Button.clickableArea.contains(clickedX,clickedY)) {
 				mouseHandler.resetClicked();
 				int turnDmg = 0;
-				if(enemies[player.currentlyFighting].name=="zibzog") {
+				if(enemies[player.currentlyFighting].name=="boss") {
 					Random random = new Random();
 			        int roll = random.nextInt(15);
 			        turnDmg = player.atk * roll - enemies[player.currentlyFighting].def;
 			        if(turnDmg<0) {
 			        	turnDmg = 0;
 			        }
-			        String outputMsg = "Turn " + String.valueOf(turnCount)+": " +"You strike Zibzog with the hammer!";
+			        String outputMsg = "Turn " + String.valueOf(turnCount)+": " +"You strike boss with the hammer!";
 					battleLog.add(outputMsg);
 					if(battleLog.size()>maxLogDisplay) {
 		        		battleLog.remove(0);
@@ -969,12 +1059,13 @@ public class GamePanel extends JPanel implements Runnable{
 				enemies[player.currentlyFighting].hp -= turnDmg;
 				if(enemies[player.currentlyFighting].hp<=0) {
 					endBattle();
-					if(enemies[player.currentlyFighting].name=="keyman") {
-						player.keyCount++;
-					}else if(enemies[player.currentlyFighting].name=="slime") {
-						player.slimeKC++;
-					}
-					enemies[player.currentlyFighting] = null;
+					//add this stuff to endbattle
+//					if(enemies[player.currentlyFighting].name=="keyman") {
+//						player.keyCount++;
+//					}else if(enemies[player.currentlyFighting].name=="slime") {
+//						player.slimeKC++;
+//					}
+					//enemies[player.currentlyFighting] = null;
 				}
 				playerTurn = false;
 				turnCount++;
@@ -1000,139 +1091,118 @@ public class GamePanel extends JPanel implements Runnable{
 				player.hpPots -=1;
 				player.hp+=20;
 				
-				//itemMenuOpen = false;
+				handleStatus(player);
 				playerTurn = false;
 				turnCount++;
-				if(player.poisoned==true) {
-					//System.out.println("test");
-					player.poisonCounter--;
-					player.hp -= 4;//poison damge, true damage ignores defense
-					if(player.poisonCounter<=0) {
-						player.poisoned = false;
-					}
-				}else if(player.bleeding==true) {
-					
-					player.bleedCounter--;
-					player.hp -= 2;
-					if(player.bleedCounter<=0) {
-						player.bleeding = false;
-					}
-				}
+				
+//				if(player.poisoned==true) {
+//					//System.out.println("test");
+//					player.poisonCounter--;
+//					player.hp -= 4;//poison damage, true damage ignores defense
+//					if(player.poisonCounter<=0) {
+//						player.poisoned = false;
+//					}
+//				}else if(player.bleeding==true) {
+//					
+//					player.bleedCounter--;
+//					player.hp -= 2;
+//					if(player.bleedCounter<=0) {
+//						player.bleeding = false;
+//					}
+//				}
 			}
-		//ENEMY TURN
-			
+		
+		/*
+		 * ENEMY MOVE
+		 * ----------
+		 * Rolls a 1 through 4 to decide which enemy move will be used
+		 * handles the enemy move after	
+		 */
 		}else if(playerTurn == false) {
 			 
 			boolean isAttack = true;
+			boolean didNothing = true;
+			
 			int turnDmg = 0;
+			
 			Random random = new Random();
-	        int roll = random.nextInt(5)+1; 
+	        int roll = random.nextInt(5)+1; //for moves 1 through 4 or the enemy does nothing
+	        
+	        //output for the turn
+	        String[] output = new String[4];
+	        
+	        //Check which move to perform, call that method and store its output (contains damage number, a message, status, and status num)
 	        if(roll == 1) {
-	        	String[] output = new String[4];
 	        	output = enemies[player.currentlyFighting].move1();
-	        	checkStatus(output[2],output[3],player);
-	        	if(output[0]!="null") {
-	        		turnDmg = Integer.valueOf(output[0]);
-	        	}else {
-	        		isAttack = false;
-	        	}
-	        	String outputMsg = "Turn " + String.valueOf(turnCount)+": " + output[1];
-	        	battleLog.add(outputMsg);
-	        	if(battleLog.size()>maxLogDisplay) {
-	        		battleLog.remove(0);
-	        	}
-	        	System.out.println(outputMsg);
+	        	didNothing = false;
+
 	        }else if(roll == 2) {
-	        	String[] output = new String[4];
 	        	output = enemies[player.currentlyFighting].move2();
-	        	checkStatus(output[2],output[3],player);
-	        	if(output[0]!="null") {
-	        		turnDmg = Integer.valueOf(output[0]);
-	        	}else {
-	        		isAttack = false;
-	        	}
-	        	String outputMsg = "Turn " + String.valueOf(turnCount)+": " + output[1];
-	        	battleLog.add(outputMsg);
-	        	if(battleLog.size()>maxLogDisplay) {
-	        		battleLog.remove(0);
-	        	}
-	        	System.out.println(outputMsg);
+	        	didNothing = false;
+
 	        }else if(roll==3){
-	        	String[] output = new String[4];
 	        	output = enemies[player.currentlyFighting].move3();
-	        	checkStatus(output[2],output[3],player);
-	        	//checkStatus(output[2],output[3],player);
-	        	if(output[0]!="null") {
-	        		turnDmg = Integer.valueOf(output[0]);
-	        	}else {
-	        		isAttack = false;
-	        	}
-	        	String outputMsg = "Turn " + String.valueOf(turnCount)+": " + output[1];
-	        	battleLog.add(outputMsg);
-	        	if(battleLog.size()>maxLogDisplay) {
-	        		battleLog.remove(0);
-	        	}
-	        	System.out.println(outputMsg);
+	        	didNothing = false;
+      
 	        }else if(roll == 4) {
-	        	
-	        	String[] output = new String[4];
 	        	output = enemies[player.currentlyFighting].move4();
-	        	String outputMsg = "Turn " + String.valueOf(turnCount)+": " + output[1];
-	        	checkStatus(output[2],output[3],player);
-	        	
-	        	if(output[0]!="null") {
-	        		turnDmg = Integer.valueOf(output[0]);
-	        	}else {
-	        		isAttack = false;
-	        	}
-	        	
-	        	battleLog.add(outputMsg);
-	        	if(battleLog.size()>maxLogDisplay) {
-	        		battleLog.remove(0);
-	        	}
-	        	System.out.println(outputMsg);
+	        	didNothing = false;
+      	
 	        }else {
 	        	String outputMsg = "Turn " + String.valueOf(turnCount)+": " + "The " + enemies[player.currentlyFighting].name + " did nothing!";
-	        	battleLog.add(outputMsg);
-	        	if(battleLog.size()>maxLogDisplay) {
-	        		battleLog.remove(0);
-	        	}
+	        	addToBattleLog(outputMsg);
 	        	isAttack = false;
 	        
 	        }
+	        
+	        //Processes the information from the enemy move
+	        if(didNothing == false) { //Checks if nothing was done as there would be no output to process
+	        	//Sets player status if applicable
+	        	setStatus(output[2],output[3],player);
+	         	
+	         	if(output[0]!="null") {
+	         		turnDmg = Integer.valueOf(output[0]);
+	         	}else {
+	         		isAttack = false;
+	         	}
+	         	
+	         	String outputMsg = "Turn " + String.valueOf(turnCount)+": " + output[1];
+	         	addToBattleLog(outputMsg);
+	 	        
+	 	        
+	        }
+	       
+	        //Might remove defended but checks if there is direct damage to be done this turn
 			if(isAttack == true && defended == true) {
 				turnDmg=0;
 				defended = false;
 			}
+			
+			if(isAttack == true && enemies[player.currentlyFighting].status=="blind") {
+				turnDmg=0;
+			}
+			//If an attack was performed
 	        if(isAttack == true) {
-	        	System.out.println(turnDmg);
-	        	if(turnDmg>player.def) {
-					turnDmg -= player.def;
-					battleLog.add("     Did " + String.valueOf(turnDmg) + " damage!");
-					if(battleLog.size()>maxLogDisplay) {
-		        		battleLog.remove(0);
-		        	}
-				}else {
+	        	
+	        	//Handle calculating the final damage to be applied
+	        	if(turnDmg>player.def) {//Check if damage can get through player defense to be applied
+					turnDmg -= player.def;//if there will still be damage done after applying defense, subtract def from dmg
+					addToBattleLog("     Did " + String.valueOf(turnDmg) + " damage!");
+					
+				}else {//otherwise set the damage to 0, as it will still list that an attack was done and tried to do damage, it just did 0
 					turnDmg = 0;
-					battleLog.add("     Did " + "0" + " damage!");
-					if(battleLog.size()>maxLogDisplay) {
-		        		battleLog.remove(0);
-		        	}
+					addToBattleLog("     Did " + "0" + " damage!");
 				}
-				
+				//Subtract damage from the players hp
 				player.hp-= turnDmg;
 				
 	        }
-	        if(enemies[player.currentlyFighting].hp<=0) {
-				endBattle();
-				if(enemies[player.currentlyFighting].name=="keyman") {
-					player.keyCount++;
-				}else if(enemies[player.currentlyFighting].name=="slime") {
-					player.slimeKC++;
-				}
-				enemies[player.currentlyFighting] = null;
-			}
+	        
+	        //check if enemy dies during turn (from a status condition or otherwise)
+	        checkBattleEnd();
+	        handleStatus(enemies[player.currentlyFighting]);
 			
+	        //switch control back to player turn and increment the turn counter
 			playerTurn = true;
 			turnCount++;
 		}
@@ -1142,10 +1212,101 @@ public class GamePanel extends JPanel implements Runnable{
 		
 	}
 	
-	public void endBattle() {
+	/**
+	 * Adds a message to the battle log and removes the oldest message if the log is full
+	 * @param outputMsg the current message to be added
+	 */
+	public void addToBattleLog(String outputMsg) {
+		battleLog.add(outputMsg);
+    	if(battleLog.size()>maxLogDisplay) {
+    		battleLog.remove(0);
+    	}
+	}
+	
+	/**
+	 * Checks if a battle meets the conditions to end (currently just killing the enemy) then ends the battle and removes the enemy
+	 */
+	public void checkBattleEnd() {
+		if(enemies[player.currentlyFighting].hp<=0) {
+			endBattle();
+//			if(enemies[player.currentlyFighting].name=="keyman") {
+//				player.keyCount++;
+//			}else if(enemies[player.currentlyFighting].name=="slime") {
+//				player.slimeKC++;
+//			}
+			//enemies[player.currentlyFighting] = null;
+		}
+	}
+	
+	public void updateSummary() {
+		
+		
+		
+		
+		//maybe make arraylist of info and go through it with e key
+		if(keyHandler.ePressed==true) {
+			 if (!keyHandler.eProcessed) {
+		            keyHandler.eProcessed = true;
+		            summaryDialogue.remove(0);
+			 }
+		}
+		
+		if(summaryDialogue.size()==0) {
+			gameState = GameState.PLAYING;
+			if(enemies[player.currentlyFighting].hp<=0) {
+				enemies[player.currentlyFighting] = null;
+			}
+			
+		}
+	}
+	
+	public void renderSummary(Graphics2D g2) {
+		g2.drawString("Press E to Continue",screenWidth/2,screenHeight/10);
+		displayDialogue(g2,summaryDialogue.get(0));
+	}
+	
+	/**
+	 * If a battle ends this will reset anything that needs to be reset
+	 * Will also handle rewards for each enemy and summary data
+	 */
+	public void endBattle() {//should have a killed/not killed option for running
+		//animations
+		slash.currentSprite=null;
+		slash.active = false;
 		turnCount = 1;
 		battleLog.clear();
-		gameState = GameState.PLAYING;
+		Entity currEnemy = enemies[player.currentlyFighting];
+		summaryDialogue.add("Killed " + currEnemy.name);
+		
+		
+		int gainedGold = 0;
+		int gainedExp = 0;
+		if(currEnemy.name == "slime") {
+			gainedGold = 5;
+			gainedExp = 10;
+			player.slimeKC+=1;//gotta remove it from the battle handler or other places
+		}else if(currEnemy.name == "keyman") {
+			gainedGold = 35;
+			gainedExp = 50;
+			summaryDialogue.add("Gained a key!");
+			player.keyCount++;
+		}
+		
+		summaryDialogue.add("Gained " + String.valueOf(gainedGold) + " gold!");
+		summaryDialogue.add("Gained " + String.valueOf(gainedExp) + " experience!");
+			
+		player.gold+=gainedGold;
+		player.exp+=gainedExp;
+		
+		
+//		summaryDialogue.add("Will gain X amount of EXP once i add that :)");
+//		
+//		player.gold += 5;//temp amount add check for enemy types or something
+		
+		
+		gameState = GameState.SUMMARY;
+		
+		
 		attackMenuOpen = false;
 		defended = false;
 		itemMenuOpen=false;
@@ -1193,7 +1354,11 @@ public void drawNoItems(Graphics2D g2, BattleButton locked) {
         g2.setFont(originalFont);
 	}
 	
-	
+	/**
+	 * Draws a button differently (currently white instead of black with inverted text color and larger font size) for when it is hovered
+	 * @param g2 graphics to draw the button
+	 * @param hovered the button currently being hovered
+	 */
 	public void drawHoveredButton(Graphics2D g2, BattleButton hovered) {
 		
 		Font originalFont = g2.getFont();
@@ -1214,58 +1379,78 @@ public void drawNoItems(Graphics2D g2, BattleButton locked) {
         g2.setFont(originalFont);
 	}
 	
-	public void checkStatus(String status, String value,Entity entity) {//takes a string for the status or debuff, and the entity to apply it to if applicable value is amount to debuff by or turn count for poison etc
-		if(status == "null") {
+	/**
+	 * Gets the name of the debuff or status as well as a value for its duration or intensity and applies it to entity
+	 * @param status the current status or debuff
+	 * @param value the duration of the status or the strength of the debuff
+	 * @param entity entity to be applied to
+	 */
+	public void setStatus(String status, String value,Entity entity) {
+		if(status == "null") {//If no status was passed in
 			return;
+		//Otherwise check other status or debuffs and apply their effects to entity
 		}else if(status == "poison") {
 			clearConditions(entity);
-			entity.poisoned = true;
-			
-//			
-        	entity.poisonCounter = Integer.valueOf(value);
+			entity.status = "poison";
+        	entity.statusCounter = Integer.valueOf(value);
+        	
 		}else if(status =="attackdebuff") {
 			entity.atk-=Integer.valueOf(value);
 			
-//			String outputMsg = "	" + entity.name + "'s atk was lowered!";
-//        	battleLog.add(outputMsg);
-//        	if(battleLog.size()>maxLogDisplay) {
-//        		battleLog.remove(0);
-//        	}
+//			
         	
 		}else if(status == "bleed") {
 			clearConditions(entity);
-			entity.bleeding = true;
-//			
-        	entity.bleedCounter = Integer.valueOf(value);
+			entity.status = "bleed";		
+        	entity.statusCounter = Integer.valueOf(value);
+        	
+		}else if(status=="blind") {
+			clearConditions(entity);
+			entity.status = "blind";		
+        	entity.statusCounter = Integer.valueOf(value);
 		}
 	}
 	
-	public void clearConditions(Entity entity) {
-		entity.poisoned = false;
-		entity.bleeding = false;
+	/**
+	 * Handles any recurring status effects
+	 * @param entity entity to handle status condition for
+	 */
+	public void handleStatus(Entity entity) {//could add the current turn damage or have it return an int and set turnDmg to it to either negate damage or handle it how it needs to be handled
+		//Checks the status effects that exist in the game and applies their effect if the player has that status
+		if(entity.status == "poison") {
+			entity.hp -= 2;
+			entity.statusCounter--;
+		}else if(entity.status == "bleed") {
+			entity.hp-=4;
+			entity.statusCounter--;
+			
+		}else if(entity.status=="blind") {
+			entity.statusCounter--;
+		}
 		
-		entity.poisonCounter = 0;
-		entity.bleedCounter = 0;
+		//If the duration of a status effect reaches 0 the status is cleared
+		if(entity.statusCounter == 0) {
+			clearConditions(entity);
+		}
 	}
 	
-//	public void displayDialogue(Graphics2D g2, String dialogue) {
-//		Font originalFont = g2.getFont();
-//		// Draw a placeholder for ATK1 if not unlocked
-//        g2.setColor(Color.WHITE); // Placeholder background color
-//        g2.fillRect(screenWidth/2,(screenHeight/4)*3,200,50);
-//        g2.setColor(Color.BLACK); // Placeholder border color
-//        g2.drawRect(screenWidth/2,(screenHeight/4)*3,200,50);
-//
-//        // Draw "Locked" text
-//        g2.setColor(Color.BLACK);
-//        g2.setFont(new Font("Arial", Font.BOLD, 25));
-//        FontMetrics metrics = g2.getFontMetrics();
-//        
-////        int textX = hovered.x + (hovered.w - metrics.stringWidth(lockedText)) / 2;
-////        int textY = hovered.y + (hovered.h - metrics.getHeight()) / 2 + metrics.getAscent();
-//        g2.drawString(dialogue, screenWidth/2,(screenHeight/4)*3);
-//        g2.setFont(originalFont);
-//	}
+	/**
+	 * Resets any status conditions currently on an entity
+	 * @param entity the entity to be cleared
+	 */
+	public void clearConditions(Entity entity) {
+		entity.status="clear";
+		entity.statusCounter = 0;
+		
+//	
+	}
+	
+
+	/**
+	 * Displays dialogue on screen
+	 * @param g2 the graphics for drawing the dialogue box
+	 * @param dialogue the message that will be displayed
+	 */
 	public void displayDialogue(Graphics2D g2, String dialogue) {
 	    // Save the original font to restore later
 	    Font originalFont = g2.getFont();
@@ -1304,6 +1489,15 @@ public void drawNoItems(Graphics2D g2, BattleButton locked) {
 			dialogue.add(messages[i]);
 		}
 	}
+	
+//	public void playEffect(Graphics2D g2) {
+////		animation.Slash;
+////	    g2.drawImage(enemyImage, (screenWidth/2)-(enemyImage.getWidth()*enemies[player.currentlyFighting].battleScaling)/2, (screenHeight/4)-(enemyImage.getHeight()*enemies[player.currentlyFighting].battleScaling)/2, enemyImage.getWidth()*enemies[player.currentlyFighting].battleScaling, enemyImage.getHeight()*enemies[player.currentlyFighting].battleScaling,null);
+//
+//	}
+	
+	
+	
 
 	
 	

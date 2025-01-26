@@ -16,6 +16,13 @@ public class SuperObject {
 	public boolean collision = false;
 	public int worldX,worldY;
 	
+	//for pressure plate
+	public boolean pressed = false;
+	public boolean pressProcessed = false;
+	
+	public int eventSet;
+
+	
 	/**
 	 * The hitbox for each object
 	 */
@@ -53,6 +60,10 @@ public class SuperObject {
 		if(this.name=="key" || this.name=="bossKey") {
 			spriteCounter++;
 			this.keyAnimation();
+		}
+		
+		if(this.name=="plate") {
+			
 		}
 		
 		if(this.name=="sword") {

@@ -23,14 +23,14 @@ public class TileManager {
 		
 		mapTileNum = new int[gamePanel.maxWorldRow][gamePanel.maxWorldCol];
 		
-		
-		loadMap("/maps/map3.txt");
+		loadMap("/maps/currentMap1.txt");
+		//loadMap("/maps/map3.txt");
 		getTileImage();
 	}
 	
 	public void getTileImage() {
 		
-		try {
+		try {//add a tile for door frame that never had a locked door and one for doors that will need a key, both can look the same
 			tile[0] = new Tile();
 			tile[0].image = ImageIO.read(getClass().getResourceAsStream("/tiles/newGrass.png"));
 			
@@ -58,16 +58,19 @@ public class TileManager {
 			tile[6].collision = true;
 			
 			tile[7] = new Tile();
-			tile[7].image = ImageIO.read(getClass().getResourceAsStream("/tiles/bridgeVertical.png"));
+			tile[7].image = ImageIO.read(getClass().getResourceAsStream("/tiles/newGrass.png"));
 			
 			tile[8] = new Tile();
-			tile[8].image = ImageIO.read(getClass().getResourceAsStream("/tiles/bridgeHorizontal.png"));
+			tile[8].image = ImageIO.read(getClass().getResourceAsStream("/tiles/newGrass.png"));
 			
 			tile[9] = new Tile();
 			tile[9].image = ImageIO.read(getClass().getResourceAsStream("/tiles/otherGrass.png"));
 			
 			tile[10] = new Tile();
 			tile[10].image = ImageIO.read(getClass().getResourceAsStream("/tiles/scaryTile.png"));
+			
+			tile[11] = new Tile();
+			tile[11].image = ImageIO.read(getClass().getResourceAsStream("/tiles/newDoorWay.png"));
 			
 
 			

@@ -71,6 +71,8 @@ public void draw(Graphics2D g2, GamePanel gamePanel) {
 		try {
 			state1 = ImageIO.read(getClass().getResourceAsStream("/npcs/oldMan1.png"));
 			state2 = ImageIO.read(getClass().getResourceAsStream("/npcs/oldMan2.png"));
+//			state1 = ImageIO.read(getClass().getResourceAsStream("/npcs/joeyySprite.png"));
+//			state2 = state1;
 			image = state1;
 		}catch(IOException e) {
 			e.printStackTrace();

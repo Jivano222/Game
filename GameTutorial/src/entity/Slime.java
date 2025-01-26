@@ -12,7 +12,7 @@ import main.GamePanel;
 //Create a set default values for combat stats in case a fight is left early to reset the enemies stats
 public class Slime extends Entity {
 	
-	//GamePanel gamePanel;
+	
 	public int state = 2;
 	
 	public int spriteCounter = 0;
@@ -25,7 +25,18 @@ public class Slime extends Entity {
 		this.speed = 1;
 		this.def = 4;
 		this.name = "slime";
-		this.direction = "down";
+		Random random = new Random();
+        int roll = random.nextInt(4); 
+        if(roll == 0) {
+        	this.direction = "down";
+        }else if(roll == 1) {
+        	this.direction = "up";
+        }else if(roll == 2) {
+        	this.direction = "left";
+        }else if(roll == 3) {
+        	this.direction = "right";
+        }
+		
 		this.spd = 2;
 		solidArea = new Rectangle();
 		solidArea.x = 0;

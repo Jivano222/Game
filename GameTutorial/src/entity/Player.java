@@ -17,6 +17,7 @@ import main.GamePanel;
 import main.KeyHandler;
 import main.QuestManager;
 import main.GamePanel.GameState;
+import object.PressurePlate;
 
 public class Player extends Entity {
 
@@ -27,9 +28,14 @@ public class Player extends Entity {
 
 	public final int screenX;
 	public final int screenY;
+	
+	public int lastObjIndex = -1;
 
 	public int keyCount = 0;
 	public int bossKeyCount = 0;
+	
+	public int gold = 0;
+	public int exp = 0;
 	
 	public int slimeKC;
 
@@ -42,10 +48,14 @@ public class Player extends Entity {
 	public int dodgeCounter;
 	
 	//attack unlocks
+	
+	//base weapon moveset
 	public boolean atk1Unlock = true;
 	public boolean atk2Unlock = true;
 	public boolean atk3Unlock = true;
 	public boolean atk4Unlock = true;
+	
+	
 	public boolean atk5Unlock = false;
 	public boolean atk6Unlock = false;
 	public boolean atk7Unlock = false;
@@ -102,10 +112,10 @@ public class Player extends Entity {
 	}
 
 	public void setDefaultValues() {
-		worldX = gamePanel.tileSize * 5;
-		worldY = gamePanel.tileSize * 4;
-		checkPointX  = gamePanel.tileSize * 5;
-		checkPointY  = gamePanel.tileSize * 4;
+		worldX = gamePanel.tileSize * 9;
+		worldY = gamePanel.tileSize * 8;
+		checkPointX  = gamePanel.tileSize * 9;
+		checkPointY  = gamePanel.tileSize * 8;
 		speed = 5;
 		direction = "down";
 	}
@@ -357,7 +367,12 @@ public class Player extends Entity {
 	}
 
 	public void interactObject(int index) {
+		//System.out.println(index);
+		if(lastObjIndex>=0 && index == 999) {
+			gamePanel.objects[lastObjIndex].pressProcessed = false;
+		}
 		if (index != 999) {
+			
 			if (gamePanel.objects[index].name == "key") {
 				keyCount++;
 				gamePanel.objects[index] = null;
@@ -391,9 +406,37 @@ public class Player extends Entity {
 			}else if(gamePanel.objects[index].name == "bosshammer") {
 				atk7Unlock = true;
 				gamePanel.objects[index] = null;
+			}else if(gamePanel.objects[index].name == "plate") {
+				
+					 if (!gamePanel.objects[index].pressProcessed) {
+						 System.out.println("plate");
+						 gamePanel.objects[index].pressProcessed = true; // Mark the key as processed
+						 	lastObjIndex = index;
+						 	PressurePlate currentPlate = (PressurePlate) gamePanel.objects[index];
+							currentPlate.onPress();
+							if( currentPlate.eventSet == 1) {
+								if(currentPlate.pressed == true) {
+									gamePanel.eManager.set1 += 1;
+								}else {
+									gamePanel.eManager.set1 -= 1;
+								}
+								
+								System.out.println(gamePanel.eManager.set1);
+							}
+				    		
+				            
+				        }
+				
 			}
+			
+			
+			
+			
+			//add lever or switch and pressure plate
 
+			
 		}
+		
 
 		return;
 	}
@@ -416,7 +459,7 @@ public class Player extends Entity {
 					gamePanel.playerTurn = false;
 				}
 				gamePanel.gameState = GameState.BATTLE;
-			}else if(gamePanel.enemies[index].name == "zibzog") {
+			}else if(gamePanel.enemies[index].name == "boss") {
 				if (this.spd > gamePanel.enemies[index].spd) {
 					gamePanel.playerTurn = true;
 				} else {
@@ -434,10 +477,11 @@ public class Player extends Entity {
 		}
 	}
 	
+	//to handle interactions with each type/individual npc
 	public void interactNPC(int index) {
 		if(index == 999) {
 			return;
-		}else if(index == 0 && gamePanel.npcs[index].name == "oldman") {
+		}else if(index == 0 && gamePanel.npcs[index].name == "oldman") {//might not need the index check, could interfere with scalability
 			questManager.quest1(slimeKC,this);
 			if(questManager.currentQuests.get(1)==null && questManager.quest1Complete==false) {
 				System.out.println("You interacting with the old man");
@@ -495,7 +539,7 @@ public class Player extends Entity {
 		if(holding == "fist") {
 			String[] output = new String[4];
 			Random random = new Random();
-	        int roll = random.nextInt(3)+1; 
+	        int roll = random.nextInt(2)+1; 
 	        output[0] = String.valueOf(roll *this.atk);
 	        output[1] = "You punched the " + gamePanel.enemies[currentlyFighting].name.toUpperCase() +"!";
 	        output[2] = "null";
@@ -504,8 +548,28 @@ public class Player extends Entity {
 	        return output;
 			
 		}else if(holding == "sword") {
+			String[] output = new String[4];
+			Random random = new Random();
+	        int roll = random.nextInt(3)+1; 
+	        output[0] = String.valueOf(roll *this.atk);
+	        output[1] = "You slashed at the " + gamePanel.enemies[currentlyFighting].name.toUpperCase() +"!";
+	        output[2] = "null";
+	        output[3] = "0";
+	        
+	        return output;
+			
 			
 		}else if(holding == "hammer") {
+			String[] output = new String[4];
+			Random random = new Random();
+	        int roll = random.nextInt(3)+1; 
+	        output[0] = String.valueOf(roll *this.atk);
+	        output[1] = "You swung your hammer at the " + gamePanel.enemies[currentlyFighting].name.toUpperCase() +"!";
+	        output[2] = "null";
+	        output[3] = "0";
+	        
+	        return output;
+			
 			
 		}
 		String[] output = new String[2];
@@ -513,8 +577,19 @@ public class Player extends Entity {
 	}
 
 	@Override
-	public String[] move2() {
+	public String[] move2() {//throw dirt
 		if(holding == "fist") {
+			String[] output = new String[4];
+			
+			
+			
+	        
+	        output[0] = "null";
+	        output[1] = "You throw dirt in the eyes of the " + gamePanel.enemies[currentlyFighting].name.toUpperCase() +"!";
+	        output[2] = "blind";
+	        output[3] = "2";
+	        
+	        return output;
 			
 		}else if(holding == "sword") {
 			
@@ -526,7 +601,24 @@ public class Player extends Entity {
 
 	@Override
 	public String[] move3() {
-		if(holding == "fist") {
+		if(holding == "fist") {//sucker punch
+			String[] output = new String[4];
+			Random random = new Random();
+			int roll;
+			if(this.spd > (gamePanel.enemies[currentlyFighting].spd * 1.5 )) {//if decently faster than enemy
+				 roll = random.nextInt(7)+1; 
+				 output[1] = "You sucker punched the " + gamePanel.enemies[currentlyFighting].name.toUpperCase() +"!";
+			}else {//if you are slower
+				 roll = 0;
+				 output[1] = "You failed to sucker punch the " + gamePanel.enemies[currentlyFighting].name.toUpperCase() +"!";
+			}
+	        
+	        output[0] = String.valueOf(roll *this.atk);
+	        
+	        output[2] = "null";
+	        output[3] = "0";
+	        
+	        return output;
 			
 		}else if(holding == "sword") {
 			
@@ -538,7 +630,21 @@ public class Player extends Entity {
 
 	@Override
 	public String[] move4() {
-		if(holding == "fist") {
+		if(holding == "fist") {//fist frenzy
+			String[] output = new String[4];
+			Random random = new Random();
+			int totalDmg = 0;
+			int roll;
+	        for(int i = 0;i<4;i++) {
+	        	roll = random.nextInt(2); 
+	        	totalDmg+=roll*this.atk;
+	        }
+	        output[0] = String.valueOf(totalDmg);
+	        output[1] = "You repeatedly strike the " + gamePanel.enemies[currentlyFighting].name.toUpperCase() +"!";
+	        output[2] = "null";
+	        output[3] = "0";
+	        
+	        return output;
 			
 		}else if(holding == "sword") {
 			

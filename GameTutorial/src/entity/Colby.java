@@ -133,7 +133,7 @@ public void loadSprites() {
 		// TODO Auto-generated method stub
 		String[] output = new String[4];
 		output[0] = "null";
-		output[1] = "null";
+		output[1] = "this move for colby wasnt programmed yet :)";
 		output[2] = "null";
         output[3] = "0";
         return output;

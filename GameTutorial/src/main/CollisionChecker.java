@@ -97,7 +97,7 @@ public class CollisionChecker {
 		
 		int index = 999;
 		
-		for(int i = 0;i<gamePanel.objects.length;i++) {
+		for(int i = 0;i<gamePanel.npcs.length;i++) {
 			if(gamePanel.npcs[i]!=null) {
 				entity.solidArea.x = entity.worldX + entity.solidArea.x;
 				entity.solidArea.y = entity.worldY + entity.solidArea.y;

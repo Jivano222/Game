@@ -42,6 +42,9 @@ abstract public class Entity {
 	public int defMax;
 	public int spdMax;
 	
+	public String status = "clear";
+	public int statusCounter = 0;
+	
 	public boolean bleeding = false;
 		public int bleedCounter = 0;
 	

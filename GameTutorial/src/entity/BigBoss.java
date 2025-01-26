@@ -22,7 +22,7 @@ public class BigBoss extends Entity{
 		this.atk = 7;
 		this.spd = 15;
 		this.def = 8;
-		this.name = "zibzog";
+		this.name = "boss";
 		this.direction = "down";
 		this.speed = 30;
 		this.battleScaling = 4 ;
